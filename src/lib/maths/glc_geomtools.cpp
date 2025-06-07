@@ -27,6 +27,7 @@
 #include "../3rdparty/clip2tri/clip2tri/clip2tri.h"
 
 #include <QtGlobal>
+#include <algorithm>
 
 
 double glc::comparedPrecision= glc::defaultPrecision;
@@ -462,18 +463,18 @@ void glc::triangulatePolygon(QList<GLuint>* pIndexList, const QList<float>& bulk
 
 			const bool faceIsCounterclockwise= isCounterclockwiseOrdered(polygon);
 
-			if(!faceIsCounterclockwise)
-			{
-				//qDebug() << "face Is Not Counterclockwise";
-				const int max= size / 2;
-				for (int i= 0; i < max; ++i)
-				{
-                    polygon.swapItemsAt(i, size - 1 -i);
-					int temp= face[i];
-					face[i]= face[size - 1 - i];
-					face[size - 1 - i]= temp;
-				}
-			}
+            if (!faceIsCounterclockwise)
+            {
+                // only declare half once, here
+                const int half = size / 2;
+                for (int i = 0; i < half; ++i)
+                {
+                    // reverse the 2D points
+                    std::swap(polygon[i], polygon[size - 1 - i]);
+                    // reverse the corresponding face index
+                    std::swap(face[i], face[size - 1 - i]);
+                }
+            }
 
             QList<int> tList;
 			triangulate(polygon, index, tList);
@@ -799,7 +800,7 @@ QList<GLC_Point2d> glc::normalyzePolygon(const QList<GLC_Point2d>& polygon)
     const int count= polygon.count();
     Q_ASSERT(count > 2);
 
-    GLC_Point2d minPoint= polygon.constFirst();
+    GLC_Point2d minPoint = polygon.first();
     GLC_Point2d maxPoint= minPoint;
     for (int i= 1; i < count; ++i)
     {
