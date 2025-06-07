@@ -19,6 +19,7 @@
 //
 
 #include "csgjs.h"
+#include <vector>
 
 // `CSG.Plane.EPSILON` is the tolerance used by `splitPolygon()` to decide if a
 // point is on the plane.
@@ -203,6 +204,7 @@ void csgjs_plane::splitPolygon(const csgjs_polygon & polygon, QVector<csgjs_poly
                     b.push_back(v);
                 }
             }
+            
             if (f.size() >= 3) front.push_back(csgjs_polygon(f));
             if (b.size() >= 3) back.push_back(csgjs_polygon(b));
             break;
@@ -312,7 +314,8 @@ QVector<csgjs_polygon> csgjs_csgnode::clipPolygons(const QVector<csgjs_polygon>&
     if (this->back) back = this->back->clipPolygons(back);
     else back.clear();
 
-    front.append(back);
+    // concatenate back into front
+    front += back;
     return front;
 }
 
@@ -332,8 +335,9 @@ QVector<csgjs_polygon> csgjs_csgnode::allPolygons() const
     QVector<csgjs_polygon> front, back;
     if (this->front) front = this->front->allPolygons();
     if (this->back) back = this->back->allPolygons();
-    polygons.append(front);
-    polygons.append(back);
+
+    polygons += front;
+    polygons += back;
     return polygons;
 }
 
